@@ -12,21 +12,22 @@ io._std = {}
 
 --[[-------------------------------------------------------------
 	*io.write( ... )
-	Removes Handle with provided HandleID
+	Pushes new entry to the io._std
 --]]-------------------------------------------------------------
 io.write = function( ... )
 	out = ""
-	for _, data in pairs( ... ) do
-		out = data..data
+	for pos = 1, select( "#", ... ) do
+		out = out..select( pos, ... )
 	end
 	
 	io._std[ #io._std + 1 ] =	string.sub(out , 1, 64 )
-	if #io._std > 16 then table.remove( io._std, 1 ) end
+	if #io._std > 12 then table.remove( io._std, 1 ) end
+	computer.pushSignal( "std_push" )
 end
 
 --[[-------------------------------------------------------------
 	*io.read( )
-	Reads last entry in io.read
+	Reads last entry in the io._std
 --]]-------------------------------------------------------------
 io.read = function( )
 	return io._std[ #io._std ]
@@ -37,8 +38,9 @@ end
 	Halts all execution and waits for a key
 --]]-------------------------------------------------------------
 io.waitForKey = function( )
-	local signal = computer.pullSignal()
-	if signal == "key_down" then return end
+	repeat
+		local signal = computer.pullSignal()
+	until signal == "key_down"
 end
 
 
@@ -62,6 +64,7 @@ io.fatalError = function( ... )
 
 	if gpu then
 		gpu.fill( "FFFFFF" )
+		gpu.foreground = 15
 		
 		local size = select('#', ...)
 		local y_start = gpu.height/2 - math.floor( size/2 )
@@ -92,14 +95,38 @@ io.fatalError = function( ... )
 	io.reboot()
 end
 
-string.split = function(inputstr, sep)
-    if sep == nil then sep = "%s" end
-    local t={}
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[ #t + 1 ] = str
-    end
-    
-	return t
+
+--[[-------------------------------------------------------------
+	*io.error( )
+	Does regular error!
+--]]-------------------------------------------------------------
+io.error = function( data ) 
+
+	if gpu then
+		gpu.fillLine( gpu.height/2-1, "FFFFFF" )
+		gpu.fillLine( gpu.height/2, "FFFFFF" )
+		gpu.fillLine( gpu.height/2+1, "FFFFFF" )
+		
+		local x_start = math.floor( gpu.width/2 - string.len( tostring( data ) ) / 2 )
+		gpu.drawText( x_start, gpu.height/2, tostring( data ), "000000", "FFFFFF" )
+		
+		x_start = gpu.width/2 - string.len( "Fatal Error Occured:" ) / 2
+		gpu.drawText( x_start, gpu.height/2-1, "Minor Error Occured:", "000000", "FFFFFF" )
+		
+		x_start = gpu.width/2 - string.len( "Press Any Key To Continue" ) / 2
+		gpu.drawText( x_start, gpu.height/2+1, "Press Any Key To Continue", "000000", "FFFFFF" )
+	end
+	
+
+	computer.beep(800)
+	computer.beep(500)
+	computer.beep(200)
+	computer.beep(1000)
+	computer.beep(1500)
+	
+	io.waitForKey()
+	computer.pushSignal("io_err", data )
+	gpu.fill( "000000" )
 end
 
 --[[-------------------------------------------------------------
@@ -113,7 +140,7 @@ end
 
 --[[-------------------------------------------------------------
 	*io.runFile( path )
-	runsFile
+	Runs file
 --]]-------------------------------------------------------------
 io.runFile = function( path ) 
 
@@ -124,5 +151,22 @@ io.runFile = function( path )
       buffer = buffer .. (data or "")
     until not data
     component.invoke(env.filesystem, "close", handle)
-    load(buffer, "=" .. path , "bt", _G)()
+	local func = load(buffer, "=" .. path , "bt", _G)
+    if func then func() end
+end
+
+--[[-------------------------------------------------------------
+	*io.readFile( path )
+	Reads file
+--]]-------------------------------------------------------------
+io.readFile = function( path ) 
+
+	local handle = assert(component.invoke(env.filesystem, "open", path ))
+    local buffer = ""
+    repeat
+      local data = component.invoke(env.filesystem, "read", handle, math.huge)
+      buffer = buffer .. (data or "")
+    until not data
+    component.invoke(env.filesystem, "close", handle)
+	return buffer
 end

@@ -26,21 +26,6 @@ env.reload = function()
 	if component.slot( computer.getBootAddress() ) then
 		local boot = computer.getBootAddress()
 		for addr, comType in component.list() do
-				
-			if comType == "filesystem" and addr == boot and state then
-				env.drive = addr
-			elseif comType == "gpu" then
-				if temp_scr then
-					component.invoke( addr, "bind", temp_scr )
-					env.gpu = addr
-				else temp_gpu = addr end
-			elseif comType == "screen" then
-				if temp_gpu then
-					component.invoke( temp_gpu, "bind", addr )
-					env.gpu = temp_gpu
-				else temp_scr = addr end
-			end
-			
 			if comType then
 				env[ comType ] = env[ comType ] or addr 
 				

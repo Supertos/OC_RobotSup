@@ -17,35 +17,40 @@ function loadfile(file)
     invoke(addr, "close", handle)
     return load(buffer, "=" .. file, "bt", _G)
  end
+ 
+string.split = function(inputstr, sep)
+    if sep == nil then sep = "%s" end
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[ #t + 1 ] = str
+    end
+    
+	return t
+end
 
+
+local load_queue = {
+	"/system/lib/io.lua",
+	"/system/lib/interrupts.lua",
+	"/system/lib/env.lua"
+}
 
 os = {}
-loadfile("/system/lib/io.lua")(loadfile)
-
-loadfile("/system/lib/interrupts.lua")(loadfile)
-
-loadfile("/system/lib/env.lua")(loadfile)
-env.reload()
-local hookUpd = function() env.reload() end
-os.hookInt( "component_added", hookUpd )
-os.hookInt( "component_removed", hookUpd )
+io = {}
+env = {}
+interrupt = {}
 
 
-if gpu then gpu.drawText( 1, 1, "Interrupt handle loaded!" ) end
-computer.beep(300)
-
-
-
-
-if gpu then gpu.drawText( 1, 2, "I/O lib loaded!" ) end
-computer.beep(400)
-if gpu then gpu.drawText( 1, 3, "Press any key to continue..." ) end
-computer.beep(500)
-
--- io.waitForKey()
--- computer.beep(600)
--- io.reboot()
-while true do
-	os._processInts()
-	-- coroutine.yield()
+local beep_step = 2000/#load_queue
+for beep, file in pairs( load_queue ) do
+	loadfile(file)(loadfile)
+	io.write( file, " loaded!" )
+	computer.beep( math.floor(beep_step*beep) )
 end
+
+env.reload()
+os.hookInt( "component_added", env.reload )
+os.hookInt( "component_removed", env.reload )
+if gpu then error = io.error end
+
+loadfile( "/program files/Shell/init.lua" )(loadfile)
