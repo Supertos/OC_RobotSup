@@ -6,5 +6,5 @@
 	Initializes screen library
 --]]----------------------------------------------------
 
-component.invoke( env.robot, "setLightColor", tonumber("00FF00", 16) )
-io.error("Not Implemented!")
+robot.initialize()
+robot.traceforward()

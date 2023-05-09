@@ -6,4 +6,4 @@
 	Initializes screen library
 --]]----------------------------------------------------
 
-robot = robot or {}
+navigation = {}

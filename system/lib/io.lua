@@ -63,7 +63,7 @@ io.reboot = function( ) computer.shutdown( true ) end
 io.fatalError = function( ... ) 
 
 	if gpu then
-		gpu.fill( "FFFFFF" )
+		gpu.fill( "22FF22" )
 		gpu.foreground = 15
 		
 		local size = select('#', ...)
@@ -75,14 +75,14 @@ io.fatalError = function( ... )
 			val = select( pos, ... )
 			local x_start = math.floor( gpu.width/2 - string.len( tostring( val ) ) / 2 )
 			
-			gpu.drawText( x_start, y_start+y_offset, tostring( val ), "000000", "FFFFFF" )
+			gpu.drawText( x_start, y_start+y_offset, tostring( val ), "000000", "22FF22" )
 			y_offset = y_offset + 1
 		end
 		local x_start = gpu.width/2 - string.len( "Fatal Error Occured:" ) / 2
-		gpu.drawText( x_start, 1, "Fatal Error Occured:", "000000", "FFFFFF" )
+		gpu.drawText( x_start, 1, "Fatal Error Occured:", "000000", "22FF22" )
 		
 		x_start = gpu.width/2 - string.len( "Press Any Key To Continue" ) / 2
-		gpu.drawText( x_start, gpu.height, "Press Any Key To Continue", "000000", "FFFFFF" )
+		gpu.drawText( x_start, gpu.height, "Press Any Key To Continue", "000000", "22FF22" )
 	end
 
 	computer.beep(300)

@@ -12,6 +12,8 @@ keyboard._keys = {}
 keyboard._just_press_map = {}
 keyboard.buffer = ""
 keyboard._buffer = {}
+keyboard._intID1 = 0
+keyboard._intID2 = 0
 
 --[[-------------------------------------------------------------
 	*keyboard._pressKey( key )
@@ -98,8 +100,18 @@ keyboard._processUnPress = function( data )
 	keyboard._unpressKey( data[3] )
 end
 
-os.hookInt( "key_down", keyboard._processPress )
-os.hookInt( "key_up", keyboard._processUnPress )
+keyboard._intID1 = os.hookInt( "key_down", keyboard._processPress )
+keyboard._intID2 = os.hookInt( "key_up", keyboard._processUnPress )
+
+--[[-------------------------------------------------------------
+	*keyboard.reloadDriver( )
+	!Internal! This hook is called when system is going to reload this driver. Used to unhook interrupts
+--]]-------------------------------------------------------------
+keyboard.reloadDriver = function()
+	os.unhookInt( "key_down", keyboard._intID1)
+	os.unhookInt( "key_down", keyboard._intID2)
+end
+
 
 --[[-------------------------------------------------------------
 	*keyboard.clearBuffer( )

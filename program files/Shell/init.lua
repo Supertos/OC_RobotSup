@@ -76,7 +76,9 @@ shell._doMultitask = function( name )
 			if coroutine.status( task[3] ) == "dead" then
 				shell._tasques[ id ] = nil
 			else
-				coroutine.resume( task[3] )
+				local a, b = coroutine.resume( task[3] )
+				
+				if not a then io.error( b ) end
 			end
 		end
 	end
@@ -100,7 +102,7 @@ shell._doGUI = function( name )
 	end
 	apr_ram = math.floor( apr_ram / #shell._rams )
 	
-	gpu.drawText( 2, 1, tostring( apr_ram ).."% RAM of "..tostring( math.floor( computer.totalMemory()/1024)).."bytes total   ", "000000", "FFFFFF" )
+	gpu.drawText( 2, 1, tostring( apr_ram ).."% RAM of "..tostring( math.floor( computer.totalMemory()/1024)).."kb total   ", "000000", "FFFFFF" )
 	gpu.drawText( 32, 1, tostring( math.ceil( (computer.energy())/computer.maxEnergy()*100 ) ).."% Power     ", "000000", "FFFFFF" )
 
 end
@@ -162,13 +164,14 @@ if not robot then
 	
 else
 	io.write("Running on robot! Loading robot packages...")
+	os.hookInt( "io_err", shell._recover )
 	
 	
 	local files = component.invoke( computer.getBootAddress(), "list", "/system/robolib/" )
 	
 	for _, file in pairs( files ) do
 		if io.fileExists("/system/robolib/"..file) then
-			io.runFile("/system/robolib/"..file )
+			shell.runTask("/system/robolib/"..file )
 		end
 	end
 	
